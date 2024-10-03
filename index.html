@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ch">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=divice-width, user-scalable=no">
+    <link rel="icon" type="image/x-icon" href="http://seventop.top/img/ico/formal/110-128.ico" />
+	<title>绝赞超美丽3D图像展示网站 -By CCPIRA</title>
+	<style>
+		* {
+			padding: 0;
+			margin: 0;
+		}
+		body {
+			font-size: 1em;
+		}
+		#chh {
+			width: 4cm;
+			margin-left: 3.5cm;
+		}
+		#_vw {
+		}
+	</style>
+	<script type="text/javascript">
+		View = {
+			_win: false,
+			_sxy: {
+				x: 0,
+				y: 0,
+				rx: 0,
+				rz: 0
+			},
+			_hold: 0,
+			resetwin() {
+				this.CS = (this._win.height + this._win.width) / 4 * Math.sqrt(2);
+				this.H = this._win.height / 2;
+				this.W = this._win.width / 2;
+				this.draw();
+			},
+			response: 150,
+			set win(n) {
+				this._win = n;
+				n.addEventListener("touchstart", function(e) {
+					window.clearInterval(Tm)
+					var e = e.changedTouches[0];
+					View._sxy = {x: e.pageX, y: e.pageY, rx: View.rx, rz: View.rz};
+				});
+				n.addEventListener("touchmove", function(e) {
+					var e = e.changedTouches[0];
+					View.rz = View._sxy.rz - (View._sxy.x - e.pageX) / View.CS * View.response;
+					View.rx = View._sxy.rx - (View._sxy.y - e.pageY) / View.CS * View.response;
+				});
+				n.onmousedown = function() {
+					window.clearInterval(Tm)
+					var event = event || window.event;
+					View._sxy = {x: event.clientX, y: event.clientY, rx: View.rx, rz: View.rz};
+					View._hold = 1
+				}
+				n.onmousemove = function() {
+					if(View._hold) {
+						var event = event || window.event;
+						View.rz = View._sxy.rz - (View._sxy.x - event.clientX) / View.CS * View.response;
+						View.rx = View._sxy.rx - (View._sxy.y - event.clientY) / View.CS * View.response;
+					}
+				}
+				n.onmouseup = function() {
+					View._hold = 0;
+				}
+				this.resetwin();
+				n.onresize = this.resetwin;
+			},
+			get win() {
+				return this._win;
+			},
+			_x: 0,
+			set x(n) {
+				this._x = n;
+				this.draw();
+			},
+			get x() {
+				return this._x;
+			},
+			_y: 0,
+			set y(n) {
+				this._y = n;
+				this.draw();
+			},
+			get y() {
+				return this._y;
+			},
+			_z: 0,
+			set z(n) {
+				this._z = n;
+				this.draw();
+			},
+			get z() {
+				return this._z;
+			},
+			calclub: function() {
+				var a = this.club[0],b = this.club[1];
+				this.club[2] = [
+					[a[0][0], a[0][1]],
+					[a[1][0] * b[0][1], b[0][0], a[1][1] * b[0][1]],
+					[a[1][0] * b[1][1], b[1][0], a[1][1] * b[1][1]]
+				];
+				this.draw();
+			},
+			_rz: 0,
+			club: [[[], []], [[], []], [
+				[1, 0],
+				[0, 1, 0],
+				[0, 0, 1]
+			]],
+			set rz(n) {
+				this._rz = (n % 360) / 180 * Math.PI;
+				var c=Math.sin(this._rz/2), a=Math.cos(this._rz/2)
+				this.club[0] =[
+					[1-2*c*c, 2*a*c],
+					[-2*a*c, 1-2*c*c]
+				];
+				this.calclub();
+			},
+			get rz() {
+				return this._rz * 180 / Math.PI;
+			},
+			_rx: 0,
+			set rx(n) {
+				if(n>90) n=90;
+				else if(n<-90) n=-90;
+				this._rx = n / 180 * Math.PI;
+				var b=Math.sin(this._rx/2), a=Math.cos(this._rx/2)
+				this.club[1] =[
+					[1-2*b*b, -2*a*b],
+					[2*a*b, 1-2*b*b]
+				];
+				this.calclub();
+			},
+			get rx() {
+				return this._rx * 180 / Math.PI;
+			},
+			_vf: 60,
+			set VF(n) {
+				this._vf = n;
+				this._PRatio = this._cs / Math.tan(n * Math.PI / 360);
+				this.draw();
+			},
+			get VF() {
+				return this._vf;
+			},
+			_cs: 10,
+			set CS(n) {
+				this._cs = n;
+				this._PRatio = n / Math.tan(this._vf * Math.PI / 360);
+				this.draw();
+			},
+			get CS() {
+				return this._cs;
+			},
+			_PRatio: 10 / Math.tan(60 * Math.PI / 360),
+			random: function(n) {
+				switch(n) {
+					case 0:
+						return this.usablor[Math.floor(Math.random() * this.usablor.length)];
+				}
+			},
+			usablor: [
+				"#000",
+				"#00f",
+				"#070",
+				"#f00"
+			],
+			rotate: function(n) {
+				var r = {};
+				r.x = n.x - this.x;
+				r.y = n.y - this.y;
+				r.z = n.z - this.z;
+				return {
+					x: r.x * this.club[2][0][0] + r.z * this.club[2][0][1],
+					y: r.x * this.club[2][1][0] + r.y * this.club[2][1][1] + r.z * this.club[2][1][2],
+					z: r.x * this.club[2][2][0] + r.y * this.club[2][2][1] + r.z * this.club[2][2][2],
+					size: n.size
+				};
+			},
+			flatten: function(n) {
+				if (n.z >= this._PRatio) return 0;
+				var c = this._PRatio / (this._PRatio - n.z);
+				var b = {
+					x: this.W + n.x * c,
+					y: this.H - n.y * c
+				};
+				if (b.x - n.size > this._win.width || b.x < - n.size) return 0;
+				if (b.y - n.size > this._win.height || b.y < - n.size) return 0;
+				return b;
+			},
+			draw: function() {
+				var i;
+				this.win.height = this.win.height;
+				var cxt = this._win.getContext("2d");
+				for (i in this.point.list) this.point.limCalc(i);
+				for (i in this.line.list) this.line.limDraw(i, cxt);
+				for (i in this.point.list) this.point.limDraw(i, cxt);
+			},
+			point: {
+				new: function() {
+					var i, j, n;
+					for(j = 0; j < arguments.length; j++) {
+						var n = arguments[j];
+						for (i in this.default) if(typeof n[i] == "undefined") n[i] = this.default[i];
+						if(n.color == "") n.color = View.random(0);
+						if(n.name == "") {
+							n.name = 0;
+							for (i in this.list) n.name++;
+						}
+						this.list[n.name] = n;
+						this.limCalc(n.name);
+						this.limDraw(n.name, View._win.getContext("2d"));
+					}
+				},
+				default: {
+					name: "",
+					tag: "",
+					color: "",
+					size: 10,
+					shape: 0,
+					x: 0,
+					y: 0,
+					z: 0,
+					display: 0
+				},
+				limCalc: function(n) {
+					this.list[n].display = View.flatten(View.rotate(this.list[n]));
+				},
+				limDraw: function(n, cxt) {
+					var dq = this.list[n];
+					if (typeof dq.display == "object") {
+						switch(dq.shape) {
+							case 0:
+								cxt.beginPath();
+								cxt.arc(dq.display.x, dq.display.y, dq.size, 0, 2 * Math.PI, false);
+								cxt.fillStyle = dq.color;
+								cxt.fill();
+								cxt.closePath();
+								break;
+						}
+					}
+				},
+				list: {}
+			},
+			line: {
+				new: function() {
+					var i, j, n;
+					for (j = 0; j < arguments.length; j++) {
+						n = arguments[j];
+						for (i in this.default) if (typeof n[i] == "undefined") n[i] = this.default[i];
+						n.color = (n.color == "" ? View.random(0) : n.color);
+						if(n.name == "") {
+							n.name = 0;
+							for (i in this.list) n.name++;
+						}
+						this.list[n.name] = n;
+						var cxt = View._win.getContext("2d");
+						this.limDraw(n.name, cxt);
+						for (i = 0; i < n.way.length; i++) View.point.limDraw(n.way[i], cxt);
+					}
+				},
+				default: {
+					name: "",
+					color: "",
+					size: 5,
+					shape: 0,
+					way: []
+				},
+				limDraw: function(n, cxt) {
+					var dq = this.list[n];
+					switch(dq.shape) {
+						case 0:
+							cxt.fillStyle = dq.color;
+							cxt.strokeStyle = dq.color;
+							cxt.lineWidth = dq.size;
+							var c = View.point.list[dq.way[0]].display;
+							for (i = 0; i < dq.way.length - 1; i++) {
+								cxt.beginPath();
+								cxt.arc(c.x, c.y, dq.size / 2, 0, 2 * Math.PI, false);
+								cxt.fill();
+								cxt.closePath();
+								cxt.moveTo(c.x, c.y);
+								c = View.point.list[dq.way[i + 1]].display;
+								cxt.lineTo(c.x, c.y);
+								cxt.stroke();
+							}
+							cxt.beginPath();
+							cxt.arc(c.x, c.y, dq.size / 2, 0, 2 * Math.PI, false);
+							cxt.fill();
+							cxt.closePath();
+							break;
+					}
+				},
+				list: {}
+			},
+			exp: {}
+		};
+		function _resetui() {
+			/*if(2 * window.innerWidth >= 3 * window.innerHeight) {
+				_h = window.innerHeight;
+				_w = window.innerWidth * 2 / 3;
+			} else {*/
+				_h = window.innerHeight / 2 * 1.5;
+				_w = window.innerWidth;
+			//}
+			_vw.height = _h;
+			_vw.width = _w;
+		}
+		window.onload = function ready() {
+			_resetui();
+			View.win = _vw;
+			/*chh.addEventListener("touchstart", function(e) {
+				var e = e.changedTouches[0];
+				con1.innerHTML = [e.pageX, e.pageY]
+			})
+			window.addEventListener("touchmove", function(e) {
+				var e = e.changedTouches[0];
+				con2.innerHTML = [e.pageX, e.pageY]
+			});
+			{
+				var ns = document.body.querySelectorAll(".MavCSS-sliderbar");
+				for(var i = 0; i < ns.length; i++) {
+					ns[i].style.cssText += ";background: #ccc;";
+				}
+			}
+			con2.innerHTML=chh.value*/
+			window.onresize = _resetui;
+			{/*
+				_cxt = _vw.getContext("2d");
+				_cxt.moveTo(0, 0);
+				_cxt.lineTo(_w, _h);
+				_cxt.stroke();
+			*/}
+			View.rx = 45;
+			Tm = setInterval(function() {View.rz += 0.25}, 20)
+			View.point.new({
+				x: 50,
+				y: 50,
+				z: 50
+			}, {
+				x: -50,
+				y: 50,
+				z: 50
+			}, {
+				x: -50,
+				y: -50,
+				z: 50
+			}, {
+				x: 50,
+				y: -50,
+				z: 50
+			}, {
+				x: 50,
+				y: 50,
+				z: -50
+			}, {
+				x: -50,
+				y: 50,
+				z: -50
+			}, {
+				x: -50,
+				y: -50,
+				z: -50
+			}, {
+				x: 50,
+				y: -50,
+				z: -50
+			});
+			View.point.new({color: "#000", size: 5});
+			View.line.new({
+				way: [0, 1, 2, 3, 0]
+			}, {
+				way: [4, 5, 6, 7, 4]
+			}, {
+				way: [0, 4]
+			}, {
+				way: [1, 5]
+			}, {
+				way: [2, 6]
+			}, {
+				way: [3, 7]
+			});
+			function rd(m) {
+				return m == 2 ? Math.random() * (P + 1) + R - P / 2 : Math.random() * Math.PI * 2 / (m + 1) - Math.PI / (m + 1);
+			}
+			R = 300;
+			P = 50;
+			function rp() {
+				var a = rd(0), b = rd(1), r = rd(2);
+				b = b * ((2 + Math.PI * (1 - Math.cos(b))) / 2 - b), ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b);
+				return {
+					x: r * ca * cb,
+					y: r * sa * cb,
+					z: r * sb,
+					color: "rgba(" + [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.random() * 0.7 + 0.3] +")"
+				};
+			}
+			for (var i=0; i<400; i++) View.point.new(rp())
+		}
+	</script>
+</head>
+
+<body>
+	<h1>（可以用手拖动）</h1>
+	<canvas id="_vw"></canvas>
+	<div id=tdiv>
+		<div class="MavCSS-sliderbar" id="chh" value=5></div>
+		<h1 id="con1">视角: 60 度</h1>
+		<input type="range" min=0 max=180 step=1 value=60 oninput="View.VF = this.value;con1.innerText = '视角: ' + this.value + ' 度'" style="width: 100%"/>
+		<br /><br /><br /><br />
+		<h1 id="con2">45</h1>
+		<input type="range" min=-180 max=180 step=1 value=0 oninput="View.rx = this.value;con2.innerText = this.value" style="width: 100%"/>
+	</div>
+</body>
+
+</html>
